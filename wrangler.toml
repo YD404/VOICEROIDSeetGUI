@@ -5,7 +5,7 @@ compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat"]
 
 # Pages の設定 ( [vars] より上に書く必要があります )
-pages_build_output_dir = "./dist"
+pages_build_output_dir = "./public"
 
 [vars]
 # 公開しても問題ない設定値はここに記述可能
