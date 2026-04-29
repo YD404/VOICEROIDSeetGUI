@@ -3,15 +3,57 @@
 // Google Sheets API との通信をカプセル化したサービスクラス
 // ============================================================
 
-import { JWT } from "google-auth-library";
 import type { SheetRow } from "../types/index";
+
+// --- ヘルパー関数: Base64Url エンコード ---
+function base64UrlEncode(buffer: ArrayBuffer | Uint8Array | string): string {
+  let str = "";
+  if (typeof buffer === "string") {
+    str = btoa(unescape(encodeURIComponent(buffer)));
+  } else {
+    const bytes = new Uint8Array(buffer);
+    for (let i = 0; i < bytes.byteLength; i++) {
+      str += String.fromCharCode(bytes[i]);
+    }
+    str = btoa(str);
+  }
+  return str.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+// --- ヘルパー関数: PEM形式の秘密鍵を CryptoKey に変換 ---
+async function importPrivateKey(pem: string): Promise<CryptoKey> {
+  const pemHeader = "-----BEGIN PRIVATE KEY-----";
+  const pemFooter = "-----END PRIVATE KEY-----";
+  const pemContents = pem.substring(
+    pem.indexOf(pemHeader) + pemHeader.length,
+    pem.indexOf(pemFooter)
+  ).replace(/\s/g, '');
+
+  const binaryDerString = atob(pemContents);
+  const binaryDer = new Uint8Array(binaryDerString.length);
+  for (let i = 0; i < binaryDerString.length; i++) {
+    binaryDer[i] = binaryDerString.charCodeAt(i);
+  }
+
+  return await crypto.subtle.importKey(
+    "pkcs8",
+    binaryDer.buffer,
+    {
+      name: "RSASSA-PKCS1-v1_5",
+      hash: "SHA-256",
+    },
+    false,
+    ["sign"]
+  );
+}
 
 /**
  * Google Sheets API とやりとりするためのサービスクラス。
  * 認証情報の管理、データの取得・更新をカプセル化する。
  */
 export class GoogleSheetsService {
-  private jwtClient: JWT;
+  private clientEmail: string;
+  private privateKey: string;
   private spreadsheetId: string;
   private range: string;
 
@@ -24,29 +66,67 @@ export class GoogleSheetsService {
     spreadsheetId: string,
     range: string
   ) {
-    // google-auth-library の JWT クラスで明示的に認証
-    this.jwtClient = new JWT({
-      email: clientEmail,
-      key: privateKey.replace(/\\n/g, "\n"),
-      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-    });
+    this.clientEmail = clientEmail;
+    this.privateKey = privateKey.replace(/\\n/g, "\n");
     this.spreadsheetId = spreadsheetId;
     this.range = range;
   }
 
   // ----------------------------------------------------------
-  // アクセストークン取得
+  // アクセストークン取得 (Web Crypto API を使用してJWTを自己署名)
   // ----------------------------------------------------------
   private async getAccessToken(): Promise<string> {
     try {
-      const res = await this.jwtClient.getAccessToken();
-      if (!res.token) {
-        throw new Error("アクセストークンの取得に失敗しました");
+      const header = {
+        alg: "RS256",
+        typ: "JWT",
+      };
+
+      const iat = Math.floor(Date.now() / 1000);
+      const exp = iat + 3600; // 1時間有効
+
+      const claimSet = {
+        iss: this.clientEmail,
+        scope: "https://www.googleapis.com/auth/spreadsheets",
+        aud: "https://oauth2.googleapis.com/token",
+        exp: exp,
+        iat: iat,
+      };
+
+      const encodedHeader = base64UrlEncode(JSON.stringify(header));
+      const encodedClaimSet = base64UrlEncode(JSON.stringify(claimSet));
+      const signatureInput = `${encodedHeader}.${encodedClaimSet}`;
+
+      const key = await importPrivateKey(this.privateKey);
+      
+      const encoder = new TextEncoder();
+      const signature = await crypto.subtle.sign(
+        "RSASSA-PKCS1-v1_5",
+        key,
+        encoder.encode(signatureInput)
+      );
+
+      const encodedSignature = base64UrlEncode(signature);
+      const jwt = `${signatureInput}.${encodedSignature}`;
+
+      // トークンエンドポイントにリクエスト
+      const response = await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`トークン取得失敗: ${errorText}`);
       }
-      return res.token;
+
+      const data = await response.json() as { access_token: string };
+      return data.access_token;
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "不明なエラー";
+      const message = error instanceof Error ? error.message : "不明なエラー";
       throw new Error(`Google認証エラー: ${message}`);
     }
   }
