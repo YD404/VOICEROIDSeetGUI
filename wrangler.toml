@@ -1,12 +1,12 @@
 name = "voiceroid-sheet-api"
+compatibility_date = "2025-04-01"
 
 # google-auth-library を動作させるために必要
 compatibility_flags = ["nodejs_compat"]
-compatibility_date = "2025-04-01"
+
+# Pages の設定 ( [vars] より上に書く必要があります )
+pages_build_output_dir = "./dist"
 
 [vars]
 # 公開しても問題ない設定値はここに記述可能
 # シークレットな値は `wrangler pages secret put` または .dev.vars に記述
-
-# Pages の設定
-pages_build_output_dir = "./public"
