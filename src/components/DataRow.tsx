@@ -61,17 +61,17 @@ export function DataRow({
     <td className={`md:hidden p-0 ${showMobileCompact ? "block" : "hidden"}`}>
       <div className="flex relative p-2 min-h-[70px]">
         {/* Left: Row number */}
-        <div className="w-10 flex-shrink-0 flex items-center justify-center border-r border-gray-200 mr-2">
-          <span className="text-xl font-bold text-gray-400 font-mono">{rowNumber}</span>
+        <div className="w-10 flex-shrink-0 flex items-center justify-center border-r border-gray-200 dark:border-gray-800 mr-2 transition-colors">
+          <span className="text-xl font-bold text-gray-400 dark:text-gray-500 font-mono transition-colors">{rowNumber}</span>
         </div>
 
         {/* Center: Dialogue & Cut */}
         <div className="flex-grow flex flex-col justify-center pr-16 py-1">
-          <div className="text-sm text-gray-900 line-clamp-2 whitespace-pre-wrap break-words">
-            {row[COL_DIALOGUE] || <span className="text-gray-400 italic">（空）</span>}
+          <div className="text-sm text-gray-900 dark:text-gray-100 line-clamp-2 whitespace-pre-wrap break-words transition-colors">
+            {row[COL_DIALOGUE] || <span className="text-gray-400 dark:text-gray-600 italic">（空）</span>}
           </div>
           {row[COL_CUT] && (
-            <div className="text-xs text-gray-500 line-clamp-1 mt-1">
+            <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-1 transition-colors">
               {row[COL_CUT]}
             </div>
           )}
@@ -81,7 +81,7 @@ export function DataRow({
         <button
           type="button"
           onClick={() => onToggleExpand?.(true)}
-          className="absolute top-1 right-1 p-1.5 text-gray-400 hover:text-gray-700 transition-colors"
+          className="absolute top-1 right-1 p-1.5 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
         >
           <ChevronDownIcon className="w-5 h-5" />
         </button>
@@ -102,13 +102,13 @@ export function DataRow({
   );
 
   const renderMobileExpandedHeader = () => (
-    <td className={`md:hidden px-3 py-2 border-b border-gray-100 bg-gray-50 justify-between items-center ${!showMobileCompact ? "flex" : "hidden"}`}>
-      <span className="font-mono text-sm font-bold text-gray-500">#{rowNumber}</span>
+    <td className={`md:hidden px-3 py-2 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 justify-between items-center transition-colors ${!showMobileCompact ? "flex" : "hidden"}`}>
+      <span className="font-mono text-sm font-bold text-gray-500 dark:text-gray-400 transition-colors">#{rowNumber}</span>
       {!isEditing && (
         <button
           type="button"
           onClick={() => onToggleExpand?.(false)}
-          className="text-gray-500 flex items-center gap-1 text-xs hover:text-gray-800 transition-colors"
+          className="text-gray-500 dark:text-gray-400 flex items-center gap-1 text-xs hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
         >
           閉じる
           <ChevronUpIcon className="w-4 h-4" />
@@ -138,13 +138,13 @@ export function DataRow({
             target.style.height = `${target.scrollHeight}px`;
           }}
           rows={1}
-          className="w-full px-2 py-1 text-sm rounded border border-gray-300 focus:border-gray-500 focus:outline-none transition-colors text-gray-900 bg-white resize-none overflow-hidden"
+          className="w-full px-2 py-1 text-sm rounded border border-gray-300 dark:border-gray-600 focus:border-gray-500 dark:focus:border-gray-400 focus:outline-none transition-colors text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 resize-none overflow-hidden"
           style={{ minHeight: "32px" }}
         />
       );
     }
     return (
-      <span className="text-sm block whitespace-pre-wrap break-words text-gray-900">
+      <span className="text-sm block whitespace-pre-wrap break-words text-gray-900 dark:text-gray-100 transition-colors">
         {row[header] ?? ""}
       </span>
     );
@@ -152,15 +152,15 @@ export function DataRow({
 
   return (
     <tr
-      className={`border-b border-gray-300 hover:bg-gray-50 transition-colors flex flex-col md:table-row mb-2 md:mb-0 border md:border-0 rounded-lg md:rounded-none overflow-hidden shadow-sm md:shadow-none relative ${
-        isEditing ? "bg-gray-50" : "bg-white"
+      className={`border-b border-gray-300 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors flex flex-col md:table-row mb-2 md:mb-0 border md:border-0 rounded-lg md:rounded-none overflow-hidden shadow-sm md:shadow-none relative ${
+        isEditing ? "bg-gray-50 dark:bg-gray-800" : "bg-white dark:bg-gray-900"
       }`}
     >
       {renderMobileCompact()}
       {renderMobileExpandedHeader()}
 
       {/* Row number (PC) */}
-      <td className="px-3 py-2 text-center text-xs text-gray-500 font-mono hidden md:table-cell">
+      <td className="px-3 py-2 text-center text-xs text-gray-500 dark:text-gray-400 font-mono hidden md:table-cell transition-colors">
         {rowNumber}
       </td>
 
@@ -170,16 +170,16 @@ export function DataRow({
           key={header}
           className={`px-3 py-2 ${
             showMobileCompact ? "hidden" : "flex flex-col"
-          } md:table-cell gap-1 border-b border-gray-100 md:border-none`}
+          } md:table-cell gap-1 border-b border-gray-100 dark:border-gray-800 md:border-none transition-colors`}
         >
-          <span className="text-xs font-semibold text-gray-500 md:hidden">{header}</span>
+          <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 md:hidden transition-colors">{header}</span>
           {renderCellContent(header)}
         </td>
       ))}
 
       {/* Actions (Expanded/PC) */}
       <td
-        className={`px-3 py-2 justify-end md:table-cell bg-gray-50 md:bg-transparent mt-auto md:mt-0 ${
+        className={`px-3 py-2 justify-end md:table-cell bg-gray-50 dark:bg-gray-800/50 md:bg-transparent md:dark:bg-transparent mt-auto md:mt-0 transition-colors ${
           showMobileCompact ? "hidden" : "flex"
         }`}
       >

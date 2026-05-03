@@ -31,14 +31,14 @@ export function RowActions({
         <button
           type="button"
           onClick={onSave}
-          className="px-2.5 py-1 text-xs font-medium rounded bg-gray-800 text-white hover:bg-gray-700 transition-colors"
+          className="px-2.5 py-1 text-xs font-medium rounded bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-white transition-colors"
         >
           {"\u78BA\u5B9A"}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="px-2.5 py-1 text-xs font-medium rounded bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors"
+          className="px-2.5 py-1 text-xs font-medium rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
         >
           {"\u53D6\u6D88"}
         </button>
@@ -52,7 +52,7 @@ export function RowActions({
         type="button"
         onClick={onStartEdit}
         title={"\u7DE8\u96C6"}
-        className="p-1.5 rounded text-gray-500 hover:text-gray-900 hover:bg-gray-200 transition-colors"
+        className="p-1.5 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
       >
         <EditIcon className={iconSize} />
       </button>
@@ -60,7 +60,7 @@ export function RowActions({
         type="button"
         onClick={onDuplicate}
         title={"\u8907\u88FD"}
-        className="p-1.5 rounded text-gray-500 hover:text-gray-900 hover:bg-gray-200 transition-colors"
+        className="p-1.5 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
       >
         <DuplicateIcon className={iconSize} />
       </button>
@@ -68,7 +68,7 @@ export function RowActions({
         type="button"
         onClick={onDelete}
         title={"\u524A\u9664"}
-        className="p-1.5 rounded text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+        className="p-1.5 rounded text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
       >
         <DeleteIcon className={iconSize} />
       </button>
