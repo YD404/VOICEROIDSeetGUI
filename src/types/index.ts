@@ -43,6 +43,8 @@ export interface DataRowProps {
   onDelete: () => void;
   onDuplicate: () => void;
   onAddOption: (category: string, newValue: string) => void;
+  isExpanded?: boolean;
+  onToggleExpand?: (isExpanded: boolean) => void;
 }
 
 /**

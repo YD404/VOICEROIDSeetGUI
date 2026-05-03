@@ -43,16 +43,8 @@ export function SpreadsheetEditor() {
   // Render
   // ----------------------------------------------------------
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
-      <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/80 backdrop-blur-md">
-        <div className="mx-auto max-w-7xl px-4 py-4">
-          <h1 className="text-xl font-bold tracking-tight">
-            <span className="text-gray-900">VOICEROID</span> Sheet Editor
-          </h1>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-7xl px-4 py-6 space-y-4">
+    <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col">
+      <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/80 backdrop-blur-md shadow-sm">
         <ActionPanel
           onSave={save}
           onAddRow={addRow}
@@ -63,7 +55,9 @@ export function SpreadsheetEditor() {
           canUndo={canUndo}
           canRedo={canRedo}
         />
+      </header>
 
+      <main className="flex-grow mx-auto w-full max-w-7xl px-4 py-6 space-y-4">
         {error && (
           <div className="px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
             {error}
@@ -88,6 +82,12 @@ export function SpreadsheetEditor() {
           />
         )}
       </main>
+
+      <footer className="w-full border-t border-gray-200 bg-white py-4 mt-auto">
+        <div className="text-center text-xs text-gray-400">
+          VOICEROID Sheet Editor
+        </div>
+      </footer>
     </div>
   );
 }

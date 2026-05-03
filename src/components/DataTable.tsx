@@ -2,6 +2,7 @@
 // DataTable - Table body
 // ============================================================
 
+import { useState } from "react";
 import type { DataTableProps } from "../types";
 import { DataRow } from "./DataRow";
 import { NoDataIcon } from "./icons";
@@ -16,6 +17,8 @@ export function DataTable({
   onDuplicateRow,
   onAddOption,
 }: DataTableProps) {
+  const [expandedRowIndex, setExpandedRowIndex] = useState<number | null>(null);
+
   if (data.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-gray-500">
@@ -57,6 +60,8 @@ export function DataTable({
               onDelete={() => onDeleteRow(i)}
               onDuplicate={() => onDuplicateRow(i)}
               onAddOption={onAddOption}
+              isExpanded={expandedRowIndex === i}
+              onToggleExpand={(isExpanded) => setExpandedRowIndex(isExpanded ? i : null)}
             />
           ))}
         </tbody>

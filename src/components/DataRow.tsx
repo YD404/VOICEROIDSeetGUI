@@ -19,9 +19,10 @@ export function DataRow({
   onDelete,
   onDuplicate,
   onAddOption,
+  isExpanded = false,
+  onToggleExpand,
 }: DataRowProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
   const [draft, setDraft] = useState<SheetRow>({ ...row });
 
   const showMobileCompact = !isExpanded && !isEditing;
@@ -30,7 +31,7 @@ export function DataRow({
   function handleStartEdit() {
     setDraft({ ...row });
     setIsEditing(true);
-    setIsExpanded(true); // Auto-expand on edit
+    onToggleExpand?.(true); // Auto-expand on edit
   }
 
   function handleCancel() {
@@ -79,7 +80,7 @@ export function DataRow({
         {/* Top Right: Expand button */}
         <button
           type="button"
-          onClick={() => setIsExpanded(true)}
+          onClick={() => onToggleExpand?.(true)}
           className="absolute top-1 right-1 p-1.5 text-gray-400 hover:text-gray-700 transition-colors"
         >
           <ChevronDownIcon className="w-5 h-5" />
@@ -106,7 +107,7 @@ export function DataRow({
       {!isEditing && (
         <button
           type="button"
-          onClick={() => setIsExpanded(false)}
+          onClick={() => onToggleExpand?.(false)}
           className="text-gray-500 flex items-center gap-1 text-xs hover:text-gray-800 transition-colors"
         >
           閉じる
@@ -128,11 +129,17 @@ export function DataRow({
           placeholder={`${header}`}
         />
       ) : (
-        <input
-          type="text"
+        <textarea
           value={draft[header] ?? ""}
           onChange={(e) => handleFieldChange(header, e.target.value)}
-          className="w-full px-2 py-1 text-sm rounded border border-gray-300 focus:border-gray-500 focus:outline-none transition-colors text-gray-900 bg-white"
+          onInput={(e) => {
+            const target = e.currentTarget;
+            target.style.height = "auto";
+            target.style.height = `${target.scrollHeight}px`;
+          }}
+          rows={1}
+          className="w-full px-2 py-1 text-sm rounded border border-gray-300 focus:border-gray-500 focus:outline-none transition-colors text-gray-900 bg-white resize-none overflow-hidden"
+          style={{ minHeight: "32px" }}
         />
       );
     }
