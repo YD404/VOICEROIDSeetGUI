@@ -26,6 +26,8 @@ export interface UseSheetDataReturn {
   duplicateRow: (rowIndex: number) => void;
   updateOptions: (category: string, newValue: string) => void;
   save: () => Promise<void>;
+  exportCsv: () => void;
+  importCsv: (file: File) => void;
   undo: () => void;
   redo: () => void;
   canUndo: boolean;
@@ -224,6 +226,128 @@ export function useSheetData(): UseSheetDataReturn {
     }
   }
 
+  // ----------------------------------------------------------
+  // CSV Export (download to device)
+  // ----------------------------------------------------------
+  function escapeCsvField(value: string): string {
+    if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+      return '"' + value.replace(/"/g, '""') + '"';
+    }
+    return value;
+  }
+
+  function exportCsv() {
+    // Exclude internal _id column
+    const exportHeaders = headers.filter((h) => h !== "_id");
+    const headerLine = exportHeaders.map(escapeCsvField).join(',');
+    const rows = data.map((row) =>
+      exportHeaders.map((h) => escapeCsvField(row[h] ?? '')).join(',')
+    );
+    const csvContent = [headerLine, ...rows].join('\n');
+    // UTF-8 BOM for Excel compatibility
+    const bom = '\uFEFF';
+    const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const now = new Date();
+    const ts = now.getFullYear().toString()
+      + String(now.getMonth() + 1).padStart(2, '0')
+      + String(now.getDate()).padStart(2, '0')
+      + '_'
+      + String(now.getHours()).padStart(2, '0')
+      + String(now.getMinutes()).padStart(2, '0')
+      + String(now.getSeconds()).padStart(2, '0');
+    a.href = url;
+    a.download = `voiceroid_sheet_${ts}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // ----------------------------------------------------------
+  // CSV Import (load from device)
+  // ----------------------------------------------------------
+  function parseCsvLine(line: string): string[] {
+    const fields: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inQuotes) {
+        if (ch === '"') {
+          if (i + 1 < line.length && line[i + 1] === '"') {
+            current += '"';
+            i++;
+          } else {
+            inQuotes = false;
+          }
+        } else {
+          current += ch;
+        }
+      } else {
+        if (ch === '"') {
+          inQuotes = true;
+        } else if (ch === ',') {
+          fields.push(current);
+          current = '';
+        } else {
+          current += ch;
+        }
+      }
+    }
+    fields.push(current);
+    return fields;
+  }
+
+  function importCsv(file: File) {
+    if (hasUnsavedChanges) {
+      const ok = window.confirm(
+        '未保存の変更があります。端末のCSVで上書きしますか？'
+      );
+      if (!ok) return;
+    }
+    setError(null);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        let text = e.target?.result as string;
+        // Strip BOM if present
+        if (text.charCodeAt(0) === 0xfeff) {
+          text = text.slice(1);
+        }
+        const lines = text.split(/\r?\n/).filter((l) => l.trim() !== '');
+        if (lines.length < 2) {
+          setError('CSVにデータ行がありません');
+          return;
+        }
+        const csvHeaders = parseCsvLine(lines[0]);
+        const rows: SheetRow[] = [];
+        for (let i = 1; i < lines.length; i++) {
+          const values = parseCsvLine(lines[i]);
+          const row: SheetRow = { _id: crypto.randomUUID() };
+          csvHeaders.forEach((h, idx) => {
+            row[h] = values[idx] ?? '';
+          });
+          rows.push(row);
+        }
+        // Update headers if they differ
+        if (csvHeaders.length > 0) {
+          setHeaders(csvHeaders);
+        }
+        resetHistory(rows);
+        extractOptions(rows);
+        setHasUnsavedChanges(true);
+      } catch {
+        setError('CSVの読み込みに失敗しました');
+      }
+    };
+    reader.onerror = () => {
+      setError('ファイルの読み込みに失敗しました');
+    };
+    reader.readAsText(file, 'UTF-8');
+  }
+
   return {
     data,
     headers,
@@ -240,6 +364,8 @@ export function useSheetData(): UseSheetDataReturn {
     duplicateRow,
     updateOptions,
     save,
+    exportCsv,
+    importCsv,
     undo: handleUndo,
     redo: handleRedo,
     canUndo,

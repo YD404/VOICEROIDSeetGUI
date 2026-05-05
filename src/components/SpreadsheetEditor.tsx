@@ -2,6 +2,7 @@
 // SpreadsheetEditor - Page container (delegates to useSheetData)
 // ============================================================
 
+import { useRef } from "react";
 import { useSheetData } from "../hooks/useSheetData";
 import { DataTable } from "./DataTable";
 import { ActionPanel } from "./ActionPanel";
@@ -23,12 +24,15 @@ export function SpreadsheetEditor() {
     duplicateRow,
     updateOptions,
     save,
+    exportCsv,
+    importCsv,
     undo,
     redo,
     canUndo,
     canRedo,
   } = useSheetData();
   const { toggleTheme } = useTheme();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ----------------------------------------------------------
   // Event handlers (thin wrappers)
@@ -41,6 +45,19 @@ export function SpreadsheetEditor() {
     duplicateRow(index);
   }
 
+  function handleImportClick() {
+    fileInputRef.current?.click();
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) {
+      importCsv(file);
+    }
+    // Reset so the same file can be selected again
+    e.target.value = "";
+  }
+
   // ----------------------------------------------------------
   // Render
   // ----------------------------------------------------------
@@ -49,6 +66,7 @@ export function SpreadsheetEditor() {
       <header className="sticky top-0 z-40 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-sm transition-colors">
         <ActionPanel
           onSave={save}
+          onExportCsv={exportCsv}
           onAddRow={addRow}
           isSaving={isSaving}
           hasUnsavedChanges={hasUnsavedChanges}
@@ -85,17 +103,36 @@ export function SpreadsheetEditor() {
         )}
       </main>
 
+      {/* Hidden file input for CSV import */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".csv"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+
       <footer className="w-full border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 py-4 mt-auto transition-colors">
         <div className="text-center text-xs text-gray-400 flex flex-col items-center gap-2">
           <span>VOICEROID Sheet Editor</span>
-          <button
-            onClick={toggleTheme}
-            className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 underline underline-offset-2 transition-colors cursor-pointer"
-          >
-            テーマを切り替える
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={toggleTheme}
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 underline underline-offset-2 transition-colors cursor-pointer"
+            >
+              テーマを切り替える
+            </button>
+            <span className="text-gray-300 dark:text-gray-600">|</span>
+            <button
+              onClick={handleImportClick}
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 underline underline-offset-2 transition-colors cursor-pointer"
+            >
+              端末から上書き
+            </button>
+          </div>
         </div>
       </footer>
     </div>
   );
 }
+

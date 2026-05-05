@@ -63,6 +63,7 @@ export interface CustomSelectProps {
  */
 export interface ActionPanelProps {
   onSave: () => void;
+  onExportCsv: () => void;
   onAddRow: () => void;
   isSaving: boolean;
   hasUnsavedChanges: boolean;
